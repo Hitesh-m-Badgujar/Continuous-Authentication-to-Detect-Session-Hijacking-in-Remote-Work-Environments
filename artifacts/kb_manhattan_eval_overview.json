@@ -1,0 +1,28 @@
+{
+  "macro_FAR": 0.2751176470588235,
+  "macro_FRR": 0.09499999999999997,
+  "macro_ACC": 0.8149411764705882,
+  "n_users": 51,
+  "data_csv": "Data\\kb_cmu_windows.csv",
+  "features": [
+    "dwell_mean",
+    "dwell_std",
+    "dwell_p10",
+    "dwell_p50",
+    "dwell_p90",
+    "dd_mean",
+    "dd_std",
+    "dd_p10",
+    "dd_p50",
+    "dd_p90",
+    "ud_mean",
+    "ud_std",
+    "ud_p10",
+    "ud_p50",
+    "ud_p90",
+    "backspace_rate",
+    "burst_mean",
+    "idle_frac"
+  ],
+  "detector": "scaled_manhattan"
+}
