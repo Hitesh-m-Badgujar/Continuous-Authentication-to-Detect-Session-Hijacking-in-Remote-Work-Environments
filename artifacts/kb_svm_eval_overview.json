@@ -1,0 +1,33 @@
+{
+  "macro_FAR": 0.010205882352941177,
+  "macro_FRR": 0.5102941176470588,
+  "macro_ACC": 0.7397499999999998,
+  "n_users": 51,
+  "data_csv": "Data\\kb_cmu_windows.csv",
+  "features": [
+    "dwell_mean",
+    "dwell_std",
+    "dwell_p10",
+    "dwell_p50",
+    "dwell_p90",
+    "dd_mean",
+    "dd_std",
+    "dd_p10",
+    "dd_p50",
+    "dd_p90",
+    "ud_mean",
+    "ud_std",
+    "ud_p10",
+    "ud_p50",
+    "ud_p90",
+    "backspace_rate",
+    "burst_mean",
+    "idle_frac"
+  ],
+  "model": "SVM (RBF, tuned; class_weight=balanced, probability=True)",
+  "train_fraction": 0.7,
+  "best_C": 20.0,
+  "best_gamma": 0.1,
+  "val_acc_best": 0.5850840336134454,
+  "scores_csv": "artifacts\\kb_svm_scores.csv"
+}
