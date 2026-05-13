@@ -454,19 +454,25 @@
     const dwellMap = new Map();
     const mousePts = [];
 
-    typebox.addEventListener('keydown', e => {
-      const t = performance.now();
-      keyEvents.push({type:'down', t, key:e.key});
-      dwellMap.set(e.key, t);
-    });
-    typebox.addEventListener('keyup', e => {
-      const t = performance.now();
-      keyEvents.push({type:'up', t, key:e.key});
-      const t0 = dwellMap.get(e.key);
-      if (typeof t0 === 'number' && t >= t0) {
-        dwellMap.delete(e.key);
-      }
-    });
+typebox.addEventListener('keydown', e => {
+  const t = performance.now();
+  keyEvents.push({type:'down', t, key:e.key});
+  dwellMap.set(e.key, t);
+  if (keyEvents.length > 4000) {
+    keyEvents.splice(0, keyEvents.length - 2000);
+  }
+});
+typebox.addEventListener('keyup', e => {
+  const t = performance.now();
+  keyEvents.push({type:'up', t, key:e.key});
+  const t0 = dwellMap.get(e.key);
+  if (typeof t0 === 'number' && t >= t0) {
+    dwellMap.delete(e.key);
+  }
+  if (keyEvents.length > 4000) {
+    keyEvents.splice(0, keyEvents.length - 2000);
+  }
+});
 
     // Capture movement as broadly as possible.
     // On some devices (touchpads, stylus), pointermove is more reliable than mousemove.
@@ -488,115 +494,143 @@
     function buildKbFeatures() {
       const now = performance.now();
       const winMs = 3000;
-      const ev = keyEvents.filter(e => now - e.t <= winMs);
+      const ev = keyEvents.filter(e => now - e.t <= winMs).sort((a, b) => a.t - b.t);
 
-      // If no recent keyboard activity, don't send a dummy all-zero vector.
-      // (Sending zeros makes kb_trust look "constant" when the user is idle.)
-      const downsCount = ev.filter(e => e.type === 'down').length;
-      if (downsCount === 0) return null;
+      const downEvents = ev.filter(e => e.type === 'down');
+      if (!downEvents.length) return null;
 
-      const dwell = [];
-      const lastDown = new Map();
+      const dwellMapLocal = new Map();
+      const dwellSec = [];
+
       for (const e of ev) {
-        if (e.type === 'down') lastDown.set(e.key, e.t);
-        else if (e.type === 'up') {
-          const t0 = lastDown.get(e.key);
-          if (typeof t0 === 'number' && e.t >= t0) dwell.push(e.t - t0);
-          lastDown.delete(e.key);
+        if (e.type === 'down') {
+          dwellMapLocal.set(e.key, e.t);
+        } else if (e.type === 'up') {
+          const t0 = dwellMapLocal.get(e.key);
+          if (typeof t0 === 'number' && e.t >= t0) {
+            dwellSec.push((e.t - t0) / 1000.0);
+          }
+          dwellMapLocal.delete(e.key);
         }
       }
 
-      const downs = ev.filter(e => e.type === 'down').map(e => e.t).sort((a,b)=>a-b);
-      const ups   = ev.filter(e => e.type === 'up').map(e => e.t).sort((a,b)=>a-b);
+      const downTimes = downEvents.map(e => e.t).sort((a, b) => a - b);
+      const upTimes = ev.filter(e => e.type === 'up').map(e => e.t).sort((a, b) => a - b);
 
-      const dd = [];
-      for (let i=1;i<downs.length;i++){ dd.push(downs[i]-downs[i-1]); }
-
-      const ud = [];
-      let j=0;
-      for (let i=0;i<ups.length;i++){
-        while (j<downs.length && downs[j] < ups[i]) j++;
-        if (j<downs.length){ ud.push(downs[j]-ups[i]); }
+      const ddSec = [];
+      for (let i = 1; i < downTimes.length; i++) {
+        ddSec.push((downTimes[i] - downTimes[i - 1]) / 1000.0);
       }
 
-      const backspaces = ev.filter(e => e.type==='down' && e.key==='Backspace').length;
-      const totalDowns = downs.length;
+      const udSec = [];
+      let j = 0;
+      for (let i = 0; i < upTimes.length; i++) {
+        while (j < downTimes.length && downTimes[j] < upTimes[i]) j++;
+        if (j < downTimes.length) {
+          udSec.push((downTimes[j] - upTimes[i]) / 1000.0);
+        }
+      }
+
+      const backspaces = downEvents.filter(e => e.key === 'Backspace').length;
+      const totalDowns = downEvents.length;
       const backspace_rate = totalDowns ? backspaces / totalDowns : 0;
 
-      let burst_sizes = [];
-      let start = 0;
-      for (let i=0;i<downs.length;i++){
-        while (downs[i]-downs[start] > 200) start++;
-        burst_sizes.push(i-start+1);
+      function computeBurstMean(ddVals) {
+        if (!ddVals.length) return 0;
+        const flags = ddVals.map(v => v < 0.150);
+        let run = 0;
+        const runs = [];
+        for (const f of flags) {
+          if (f) {
+            run += 1;
+          } else if (run > 0) {
+            runs.push(run);
+            run = 0;
+          }
+        }
+        if (run > 0) runs.push(run);
+        return runs.length ? mean(runs) : 0;
       }
-      const burst_mean = mean(burst_sizes);
-      const winMsTotal = winMs;
-      const idle_frac = totalDowns ? Math.max(0, 1 - (totalDowns*50)/winMsTotal) : 1;
 
-      const feats20 = [
-        mean(dwell), std(dwell), pct(dwell,10), pct(dwell,50), pct(dwell,90),
-        mean(dd), std(dd), pct(dd,10), pct(dd,50), pct(dd,90),
-        mean(ud), std(ud), pct(ud,10), pct(ud,50), pct(ud,90),
+      const idle_frac = udSec.length ? (udSec.filter(v => v > 1.0).length / udSec.length) : 1.0;
+      const burst_mean = computeBurstMean(ddSec);
+
+      const feats18 = [
+        mean(dwellSec), std(dwellSec), pct(dwellSec, 10), pct(dwellSec, 50), pct(dwellSec, 90),
+        mean(ddSec),    std(ddSec),    pct(ddSec, 10),    pct(ddSec, 50),    pct(ddSec, 90),
+        mean(udSec),    std(udSec),    pct(udSec, 10),    pct(udSec, 50),    pct(udSec, 90),
         backspace_rate,
         burst_mean,
-        idle_frac,
-        0.0
+        idle_frac
       ];
 
-      const kbDim = (KB_HEALTH && KB_HEALTH.dim) ? KB_HEALTH.dim : 18;
-      let vec = feats20.slice(0, kbDim);
-      while (vec.length < kbDim) vec.push(0);
-      return vec.map(v => isFinite(v) ? v : 0);
+      return feats18.map(v => (isFinite(v) ? Number(v) : 0));
     }
 
     function buildMouseFeatures() {
       const now = performance.now();
-      // Slightly longer window improves reliability on low-event devices.
       const winMs = 2500;
       const pts = mousePts.filter(p => now - p.t <= winMs);
       if (pts.length < 2) return null;
 
-      const dur_ms = pts[pts.length-1].t - pts[0].t;
+      const dur_ms = pts[pts.length - 1].t - pts[0].t;
       const n_points = pts.length;
 
       let path_len = 0;
       const speeds = [];
       const accs = [];
       const jerks = [];
-      let last_v = null;
-      let last_a = null;
-      let direction_changes = 0;
 
-      let straight_dx = pts[pts.length-1].x - pts[0].x;
-      let straight_dy = pts[pts.length-1].y - pts[0].y;
-      const straight_len = Math.hypot(straight_dx, straight_dy);
+      const segDxSigns = [];
+      const segDySigns = [];
 
-      let pauses = 0, pause_total = 0;
-      const PAUSE_THRESH = 20;
+      let lastV = null;
+      let lastA = null;
+      let pauseCount = 0;
 
-      for (let i=1;i<pts.length;i++){
-        const dt = Math.max(1, pts[i].t - pts[i-1].t);
-        const dx = pts[i].x - pts[i-1].x;
-        const dy = pts[i].y - pts[i-1].y;
+      const dxTotal = pts[pts.length - 1].x - pts[0].x;
+      const dyTotal = pts[pts.length - 1].y - pts[0].y;
+      const straight_len = Math.hypot(dxTotal, dyTotal);
+
+      for (let i = 1; i < pts.length; i++) {
+        const dtMs = Math.max(1, pts[i].t - pts[i - 1].t);
+        const dt = dtMs / 1000.0;
+
+        const dx = pts[i].x - pts[i - 1].x;
+        const dy = pts[i].y - pts[i - 1].y;
         const dist = Math.hypot(dx, dy);
+
         path_len += dist;
+
+        segDxSigns.push(Math.sign(dx));
+        segDySigns.push(Math.sign(dy));
 
         const v = dist / dt;
         speeds.push(v);
 
-        if (last_v !== null){
-          const a = (v - last_v) / dt;
+        if (lastV !== null) {
+          const a = (v - lastV) / dt;
           accs.push(a);
-          if (last_a !== null){
-            const j = (a - last_a) / dt;
-            jerks.push(j);
-            if ((a > 0 && last_a < 0) || (a < 0 && last_a > 0)) direction_changes++;
-          }
-          last_a = a;
-        }
-        last_v = v;
 
-        if (dt >= PAUSE_THRESH){ pauses++; pause_total += dt; }
+          if (lastA !== null) {
+            const j = (a - lastA) / dt;
+            jerks.push(j);
+          }
+          lastA = a;
+        }
+        lastV = v;
+
+        if (dtMs > 20) pauseCount++;
+      }
+
+      let direction_changes = 0;
+      for (let i = 1; i < segDxSigns.length; i++) {
+        if (segDxSigns[i] !== 0 && segDxSigns[i - 1] !== 0 && segDxSigns[i] !== segDxSigns[i - 1]) {
+          direction_changes++;
+        }
+        if (segDySigns[i] !== 0 && segDySigns[i - 1] !== 0 && segDySigns[i] !== segDySigns[i - 1]) {
+          direction_changes++;
+        }
       }
 
       const mean_speed = mean(speeds);
@@ -611,15 +645,17 @@
       const p95_jerk = pct(jerks, 95);
       const max_jerk = jerks.length ? Math.max(...jerks) : 0;
 
-      const dx = straight_dx, dy = straight_dy;
-      const abs_dx = Math.abs(dx), abs_dy = Math.abs(dy);
-      const minx = Math.min(...pts.map(p=>p.x)), maxx = Math.max(...pts.map(p=>p.x));
-      const miny = Math.min(...pts.map(p=>p.y)), maxy = Math.max(...pts.map(p=>p.y));
-      const bbox_w = maxx - minx, bbox_h = maxy - miny;
-      const bbox_area = bbox_w * bbox_h;
-      const pause_ratio_20ms = dur_ms ? (pause_total / dur_ms) : 0;
+      const abs_dx = Math.abs(dxTotal);
+      const abs_dy = Math.abs(dyTotal);
 
-      const straightness = straight_len > 0 ? (path_len / straight_len) : 0;
+      const xs = pts.map(p => p.x);
+      const ys = pts.map(p => p.y);
+      const bbox_w = Math.max(...xs) - Math.min(...xs);
+      const bbox_h = Math.max(...ys) - Math.min(...ys);
+      const bbox_area = bbox_w * bbox_h;
+
+      const straightness = path_len > 1e-9 ? (straight_len / path_len) : 0;
+      const pause_ratio_20ms = speeds.length ? (pauseCount / speeds.length) : 0;
 
       return [
         dur_ms,
@@ -636,8 +672,8 @@
         mean_jerk,
         p95_jerk,
         max_jerk,
-        dx,
-        dy,
+        dxTotal,
+        dyTotal,
         abs_dx,
         abs_dy,
         bbox_w,

@@ -103,8 +103,9 @@ def _kinematics(df: pd.DataFrame) -> Dict[str, float]:
 
     # dt in seconds
     dt = np.diff(t) / 1000.0
-    # guard against zeros/negatives
-    dt[dt <= 1e-6] = 1e-6
+    # guard against zeros / tiny gaps that explode speed, acceleration and jerk
+    # use a realistic minimum of 10 ms
+    dt[dt <= 0.01] = 0.01
 
     dx = np.diff(x)
     dy = np.diff(y)
@@ -113,6 +114,14 @@ def _kinematics(df: pd.DataFrame) -> Dict[str, float]:
     v = dist / dt
     a = np.diff(v) / dt[1:] if len(v) > 1 else np.array([])
     j = np.diff(a) / dt[2:] if len(a) > 1 else np.array([])
+
+    # Clip extreme outliers so a few tiny time gaps do not dominate the summaries.
+    if v.size:
+        v = np.clip(v, 0, np.percentile(v, 99))
+    if a.size:
+        a = np.clip(a, np.percentile(a, 1), np.percentile(a, 99))
+    if j.size:
+        j = np.clip(j, np.percentile(j, 1), np.percentile(j, 99))
 
     path_len = float(dist.sum())
     dx_total = float(x[-1] - x[0])

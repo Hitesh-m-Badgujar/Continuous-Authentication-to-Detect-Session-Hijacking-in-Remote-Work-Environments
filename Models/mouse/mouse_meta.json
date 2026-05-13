@@ -36,9 +36,14 @@
     "direction_changes",
     "pause_ratio_20ms"
   ],
-  "internal_acc": 0.5536366655596148,
-  "train_csv": "C:\\Users\\Hitesh\\Desktop\\H1\\Data\\mouse_windows_train_augmented.csv",
-  "C": 50.0,
-  "gamma": 0.2,
-  "kernel": "rbf"
+  "tune_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/mouse_windows_train.csv",
+  "final_train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/mouse_windows_train_augmented.csv",
+  "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/mouse_windows_train_augmented.csv",
+  "internal_holdout_acc": 0.8172945205479452,
+  "internal_acc": 0.8172945205479452,
+  "sanity_holdout_acc": 0.9857876712328767,
+  "C": 100.0,
+  "gamma": 0.3,
+  "kernel": "rbf",
+  "min_per_user": 40
 }

@@ -155,17 +155,24 @@ def main() -> None:
     if missing:
         raise SystemExit(f"Mouse test CSV is missing feature columns: {missing}")
 
+    df = df.replace([np.inf, -np.inf], np.nan)
     df = df.dropna(subset=FEATURE_COLS).copy()
+
+    scaler, model = _load_model_and_scaler()
+
+    # Evaluate only users the trained model actually knows about
+    known_users = set(map(str, getattr(model, "classes_", [])))
+    if known_users:
+        df = df[df["user_id"].isin(known_users)].copy()
 
     users = sorted(df["user_id"].unique())
     print(f"[INFO] Evaluating {len(users)} users")
     if not users:
-        raise SystemExit("No users found in mouse_windows_test.csv")
+        raise SystemExit("No users found in mouse_windows_test.csv after filtering to known model classes")
 
     X = df[FEATURE_COLS].to_numpy(dtype=float)
     y = df["user_id"].astype(str).to_numpy()
 
-    scaler, model = _load_model_and_scaler()
     X_scaled = scaler.transform(X)
     y_pred = model.predict(X_scaled)
 
@@ -211,7 +218,8 @@ def main() -> None:
         "macro_FRR": macro_FRR,
         "macro_ACC": macro_ACC,
         "n_users": len(rows),
-        "data_csv": str(DATA_CSV),
+        "model_path": str(MODEL_PATH),
+        "scaler_path": str(SCALER_PATH),
         "features": FEATURE_COLS,
         "model": "mouse SVM (multi-class, evaluated per-user genuine vs impostor)",
     }
