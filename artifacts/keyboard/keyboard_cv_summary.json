@@ -1,0 +1,26 @@
+[
+  {
+    "model": "logreg_baseline",
+    "cv_mean_accuracy": 0.4702926210225038,
+    "cv_std_accuracy": 0.0768501751388378,
+    "cv_mean_macro_f1": 0.4519667523490291,
+    "cv_std_macro_f1": 0.08048172349010467,
+    "heldout_test_accuracy": 0.516421568627451,
+    "heldout_test_macro_f1": 0.5010857171334943,
+    "n_dev_rows": 16320,
+    "n_test_rows": 4080,
+    "n_users": 51
+  },
+  {
+    "model": "svm_rbf_final",
+    "cv_mean_accuracy": 0.5087478397682903,
+    "cv_std_accuracy": 0.07740808725221829,
+    "cv_mean_macro_f1": 0.496054950863735,
+    "cv_std_macro_f1": 0.07897160814679799,
+    "heldout_test_accuracy": 0.5997549019607843,
+    "heldout_test_macro_f1": 0.5931401299131881,
+    "n_dev_rows": 16320,
+    "n_test_rows": 4080,
+    "n_users": 51
+  }
+]
