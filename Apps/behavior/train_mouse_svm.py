@@ -2,18 +2,22 @@
 """
 Train the final mouse SVM classifier.
 
-Clean training story:
+Report-friendly training story:
   1) Tune hyperparameters on the base training set only
      -> Data/mouse_windows_train.csv
-  2) Train the final runtime model on the augmented full training set
+  2) Use grouped cross-validation by raw session file to reduce leakage
+  3) Select hyperparameters by mean grouped-CV macro F1 (and accuracy)
+  4) Train the final runtime model on the augmented full training set
      -> Data/mouse_windows_train_augmented.csv
-  3) Evaluate later on the separate held-out test set using eval_mouse.py
+  5) Evaluate later on the separate held-out test set using eval_mouse.py
      -> Data/mouse_windows_test.csv
 
 Outputs:
   - Models/mouse/mouse_scaler.joblib
   - Models/mouse/mouse_svm.joblib
   - Models/mouse/mouse_meta.json
+  - artifacts/mouse/mouse_tuning_results.csv
+  - artifacts/mouse/mouse_tuning_summary.json
 """
 
 from __future__ import annotations
@@ -25,8 +29,10 @@ import json
 import numpy as np
 import pandas as pd
 from joblib import dump
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.model_selection import train_test_split
+from sklearn.base import clone
+from sklearn.metrics import accuracy_score, classification_report, f1_score
+from sklearn.model_selection import GroupKFold
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
@@ -37,6 +43,7 @@ from sklearn.svm import SVC
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = BASE_DIR / "Data"
 MODELS_DIR = BASE_DIR / "Models" / "mouse"
+ART_DIR = BASE_DIR / "artifacts" / "mouse"
 
 TUNE_CSV = DATA_DIR / "mouse_windows_train.csv"
 FINAL_TRAIN_CSV = DATA_DIR / "mouse_windows_train_augmented.csv"
@@ -68,13 +75,13 @@ FEATURE_COLS: List[str] = [
 ]
 
 LABEL_COL = "user_id"
+GROUP_COL = "file"
 MIN_PER_USER = 40
-TEST_FRACTION = 0.25  # internal holdout only for tuning / sanity check
+N_SPLITS = 5
 
 # Narrowed hyperparameter search based on previous run history.
-# Earlier wider search already explored smaller C values (1, 5, 10, 20)
-# and showed the best result near the upper edge around C=50, gamma=0.2.
-# To save time, this run searches only around that stronger region.
+# Earlier wider search explored smaller C values and weaker gamma settings.
+# The best region was near the upper edge, so this search stays focused there.
 C_VALUES = [50.0, 80.0, 100.0]
 GAMMAS = [0.1, 0.2, 0.3]
 
@@ -83,19 +90,25 @@ GAMMAS = [0.1, 0.2, 0.3]
 # Helpers
 # ---------------------------------------------------------------------
 
-def _load_df(path: Path) -> pd.DataFrame:
+def _load_df(path: Path, require_group: bool) -> pd.DataFrame:
     if not path.is_file():
         raise SystemExit(f"Mouse train CSV not found: {path}")
 
     df = pd.read_csv(path)
-    if LABEL_COL not in df.columns:
-        raise SystemExit(f"Expected '{LABEL_COL}' column in {path.name}")
 
-    missing = [c for c in FEATURE_COLS if c not in df.columns]
+    needed = [LABEL_COL] + FEATURE_COLS
+    if require_group:
+        needed = [LABEL_COL, GROUP_COL] + FEATURE_COLS
+
+    missing = [c for c in needed if c not in df.columns]
     if missing:
-        raise SystemExit(f"{path.name} is missing feature columns: {missing}")
+        raise SystemExit(f"{path.name} is missing columns: {missing}")
 
+    df = df[needed].copy()
     df[LABEL_COL] = df[LABEL_COL].astype(str).str.strip()
+    if require_group:
+        df[GROUP_COL] = df[GROUP_COL].astype(str).str.strip()
+
     df = df.replace([np.inf, -np.inf], np.nan)
     df = df.dropna(subset=FEATURE_COLS).copy()
 
@@ -121,11 +134,19 @@ def _restrict_to_common_users(tune_df: pd.DataFrame, final_df: pd.DataFrame) -> 
     return tune_df, final_df
 
 
+def _xyg(df: pd.DataFrame):
+    X = df[FEATURE_COLS].to_numpy(dtype=float)
+    y = df[LABEL_COL].astype(str).to_numpy()
+    g = df[GROUP_COL].astype(str).to_numpy()
+    return X, y, g
+
+
 def main() -> None:
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    ART_DIR.mkdir(parents=True, exist_ok=True)
 
-    tune_df = _load_df(TUNE_CSV)
-    final_df = _load_df(FINAL_TRAIN_CSV)
+    tune_df = _load_df(TUNE_CSV, require_group=True)
+    final_df = _load_df(FINAL_TRAIN_CSV, require_group=False)
     tune_df, final_df = _restrict_to_common_users(tune_df, final_df)
 
     print(
@@ -136,52 +157,91 @@ def main() -> None:
         f"[INFO] Loaded {len(final_df)} final-train windows for "
         f"{final_df[LABEL_COL].nunique()} users from {FINAL_TRAIN_CSV}"
     )
+    print(f"[INFO] Unique tuning files: {tune_df[GROUP_COL].nunique()}")
 
     # -----------------------------------------------------------------
-    # Hyperparameter tuning on the BASE training set only
+    # Grouped CV tuning on the BASE training set only
     # -----------------------------------------------------------------
-    X_tune = tune_df[FEATURE_COLS].to_numpy(dtype=float)
-    y_tune = tune_df[LABEL_COL].astype(str).to_numpy()
+    X_tune, y_tune, g_tune = _xyg(tune_df)
 
-    X_train, X_holdout, y_train, y_holdout = train_test_split(
-        X_tune,
-        y_tune,
-        test_size=TEST_FRACTION,
-        random_state=42,
-        stratify=y_tune,
-    )
+    gkf = GroupKFold(n_splits=N_SPLITS)
+    tuning_rows = []
 
-    scaler_tune = StandardScaler()
-    X_train_scaled = scaler_tune.fit_transform(X_train)
-    X_holdout_scaled = scaler_tune.transform(X_holdout)
-
-    best_C = None
-    best_gamma = None
-    best_acc = -1.0
-
-    print("[INFO] Tuning SVM hyperparameters on base-train internal holdout...")
+    print("[INFO] Tuning SVM hyperparameters with grouped CV by raw file...")
     for C in C_VALUES:
         for gamma in GAMMAS:
-            svm = SVC(
-                kernel="rbf",
-                C=C,
-                gamma=gamma,
-                decision_function_shape="ovr",
-                class_weight="balanced",
-                probability=False,
-                cache_size=1000,
+            fold_accs = []
+            fold_f1s = []
+
+            base_model = Pipeline(
+                steps=[
+                    ("scaler", StandardScaler()),
+                    (
+                        "clf",
+                        SVC(
+                            kernel="rbf",
+                            C=C,
+                            gamma=gamma,
+                            decision_function_shape="ovr",
+                            class_weight="balanced",
+                            probability=False,
+                            cache_size=1000,
+                        ),
+                    ),
+                ]
             )
-            svm.fit(X_train_scaled, y_train)
-            acc = svm.score(X_holdout_scaled, y_holdout)
-            print(f"  C={C:<5} gamma={str(gamma):<6} -> acc={acc:.4f}")
-            if acc > best_acc:
-                best_acc = float(acc)
-                best_C = C
-                best_gamma = gamma
+
+            for fold_idx, (tr_idx, va_idx) in enumerate(gkf.split(X_tune, y_tune, groups=g_tune), start=1):
+                X_tr, X_va = X_tune[tr_idx], X_tune[va_idx]
+                y_tr, y_va = y_tune[tr_idx], y_tune[va_idx]
+
+                clf = clone(base_model)
+                clf.fit(X_tr, y_tr)
+                pred = clf.predict(X_va)
+
+                acc = accuracy_score(y_va, pred)
+                macro_f1 = f1_score(y_va, pred, average="macro")
+                fold_accs.append(acc)
+                fold_f1s.append(macro_f1)
+
+                tuning_rows.append(
+                    {
+                        "C": C,
+                        "gamma": gamma,
+                        "fold": fold_idx,
+                        "cv_accuracy": float(acc),
+                        "cv_macro_f1": float(macro_f1),
+                        "n_train": int(len(tr_idx)),
+                        "n_val": int(len(va_idx)),
+                    }
+                )
+
+            mean_acc = float(np.mean(fold_accs))
+            mean_f1 = float(np.mean(fold_f1s))
+            print(f"  C={C:<5} gamma={str(gamma):<4} -> cv_mean_acc={mean_acc:.4f}, cv_mean_macro_f1={mean_f1:.4f}")
+
+    tuning_df = pd.DataFrame(tuning_rows)
+    tuning_summary = (
+        tuning_df.groupby(["C", "gamma"], as_index=False)
+        .agg(
+            cv_mean_accuracy=("cv_accuracy", "mean"),
+            cv_std_accuracy=("cv_accuracy", "std"),
+            cv_mean_macro_f1=("cv_macro_f1", "mean"),
+            cv_std_macro_f1=("cv_macro_f1", "std"),
+        )
+        .sort_values(["cv_mean_macro_f1", "cv_mean_accuracy"], ascending=False)
+        .reset_index(drop=True)
+    )
+
+    best_row = tuning_summary.iloc[0]
+    best_C = float(best_row["C"])
+    best_gamma = float(best_row["gamma"])
+    best_cv_acc = float(best_row["cv_mean_accuracy"])
+    best_cv_f1 = float(best_row["cv_mean_macro_f1"])
 
     print(
         f"[INFO] Best hyperparams: C={best_C}, gamma={best_gamma}, "
-        f"internal_acc={best_acc:.4f}"
+        f"cv_mean_acc={best_cv_acc:.4f}, cv_mean_macro_f1={best_cv_f1:.4f}"
     )
 
     # -----------------------------------------------------------------
@@ -208,40 +268,76 @@ def main() -> None:
     print("[INFO] Final mouse SVM training done.")
 
     # -----------------------------------------------------------------
-    # Optional sanity report on the BASE holdout using the FINAL model
+    # Optional sanity report on the BASE training set using grouped best params
     # -----------------------------------------------------------------
-    common_holdout_mask = np.isin(y_holdout, svm_final.classes_)
-    X_holdout_common = X_holdout[common_holdout_mask]
-    y_holdout_common = y_holdout[common_holdout_mask]
-
-    if len(X_holdout_common):
-        y_holdout_pred = svm_final.predict(scaler_final.transform(X_holdout_common))
-        print("\n[INFO] Classification report on base-train internal holdout (sanity only):")
-        print(classification_report(y_holdout_common, y_holdout_pred))
-        sanity_acc = accuracy_score(y_holdout_common, y_holdout_pred)
-    else:
-        sanity_acc = None
-        print("\n[INFO] No compatible holdout rows available for sanity classification report.")
+    sanity_model = Pipeline(
+        steps=[
+            ("scaler", StandardScaler()),
+            (
+                "clf",
+                SVC(
+                    kernel="rbf",
+                    C=best_C,
+                    gamma=best_gamma,
+                    decision_function_shape="ovr",
+                    class_weight="balanced",
+                    probability=False,
+                    cache_size=1000,
+                ),
+            ),
+        ]
+    )
+    sanity_model.fit(X_tune, y_tune)
+    sanity_pred = sanity_model.predict(X_tune)
+    sanity_acc = accuracy_score(y_tune, sanity_pred)
+    print("\n[INFO] Classification report on base-train data (sanity only):")
+    print(classification_report(y_tune, sanity_pred))
 
     # -----------------------------------------------------------------
-    # Save artifacts
+    # Save artifacts / proofs
     # -----------------------------------------------------------------
     scaler_path = MODELS_DIR / "mouse_scaler.joblib"
     model_path = MODELS_DIR / "mouse_svm.joblib"
     meta_path = MODELS_DIR / "mouse_meta.json"
+    tuning_csv = ART_DIR / "mouse_tuning_results.csv"
+    tuning_summary_json = ART_DIR / "mouse_tuning_summary.json"
 
     dump(scaler_final, scaler_path)
     dump(svm_final, model_path)
 
+    tuning_df.to_csv(tuning_csv, index=False)
+    with open(tuning_summary_json, "w", encoding="utf-8") as fh:
+        json.dump(
+            {
+                "best_C": best_C,
+                "best_gamma": best_gamma,
+                "best_cv_mean_accuracy": best_cv_acc,
+                "best_cv_mean_macro_f1": best_cv_f1,
+                "n_tune_rows": int(len(tune_df)),
+                "n_final_train_rows": int(len(final_df)),
+                "n_users": int(final_df[LABEL_COL].nunique()),
+                "n_tuning_files": int(tune_df[GROUP_COL].nunique()),
+                "grid_C": C_VALUES,
+                "grid_gamma": GAMMAS,
+            },
+            fh,
+            indent=2,
+        )
+
     meta = {
+        "model_type": "svm_rbf",
         "classes": sorted(list(map(str, svm_final.classes_))),
         "features": FEATURE_COLS,
         "tune_csv": str(TUNE_CSV),
         "final_train_csv": str(FINAL_TRAIN_CSV),
         "train_csv": str(FINAL_TRAIN_CSV),
-        "internal_holdout_acc": float(best_acc),
-        "internal_acc": float(best_acc),
-        "sanity_holdout_acc": None if sanity_acc is None else float(sanity_acc),
+        "group_col": GROUP_COL,
+        "grouped_cv_metric": "macro_f1",
+        "best_cv_mean_accuracy": float(best_cv_acc),
+        "best_cv_mean_macro_f1": float(best_cv_f1),
+        "internal_holdout_acc": float(best_cv_acc),
+        "internal_acc": float(best_cv_acc),
+        "sanity_holdout_acc": float(sanity_acc),
         "C": best_C,
         "gamma": best_gamma,
         "kernel": "rbf",
@@ -254,6 +350,8 @@ def main() -> None:
     print(f"  scaler -> {scaler_path}")
     print(f"  model  -> {model_path}")
     print(f"  meta   -> {meta_path}")
+    print(f"  tuning -> {tuning_csv}")
+    print(f"  summary -> {tuning_summary_json}")
 
 
 if __name__ == "__main__":

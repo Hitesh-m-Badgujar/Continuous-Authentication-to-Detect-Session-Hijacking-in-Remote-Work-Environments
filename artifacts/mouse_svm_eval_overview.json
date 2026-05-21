@@ -1,7 +1,7 @@
 {
-  "macro_FAR": 0.08560911803243329,
-  "macro_FRR": 0.7744896036669758,
-  "macro_ACC": 0.5699506391502954,
+  "macro_FAR": 0.08358231307157835,
+  "macro_FRR": 0.750334189096678,
+  "macro_ACC": 0.5830417489158719,
   "n_users": 10,
   "model_path": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Models/mouse/mouse_svm.joblib",
   "scaler_path": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Models/mouse/mouse_scaler.joblib",

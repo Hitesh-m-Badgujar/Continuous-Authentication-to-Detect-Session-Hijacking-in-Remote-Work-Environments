@@ -1,4 +1,5 @@
 {
+  "model_type": "svm_rbf",
   "classes": [
     "user12",
     "user15",
@@ -39,11 +40,15 @@
   "tune_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/mouse_windows_train.csv",
   "final_train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/mouse_windows_train_augmented.csv",
   "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/mouse_windows_train_augmented.csv",
-  "internal_holdout_acc": 0.8172945205479452,
-  "internal_acc": 0.8172945205479452,
-  "sanity_holdout_acc": 0.9857876712328767,
-  "C": 100.0,
-  "gamma": 0.3,
+  "group_col": "file",
+  "grouped_cv_metric": "macro_f1",
+  "best_cv_mean_accuracy": 0.32563784298059006,
+  "best_cv_mean_macro_f1": 0.2670350500164819,
+  "internal_holdout_acc": 0.32563784298059006,
+  "internal_acc": 0.32563784298059006,
+  "sanity_holdout_acc": 0.8027228358592345,
+  "C": 50.0,
+  "gamma": 0.1,
   "kernel": "rbf",
   "min_per_user": 40
 }

@@ -304,20 +304,12 @@
       </div>
 
       <div class="card">
-        <div class="label">Model summary</div>
+        <div class="label">Runtime status</div>
         <div class="small">
-          <strong>Keyboard SVM</strong><br>
-          <span id="kb_info_text">—</span>
-        </div>
-        <div class="small" style="margin-top:10px;">
-          <strong>Mouse SVM</strong><br>
-          <span id="mouse_info_text">—</span>
-        </div>
-        <div class="small" style="margin-top:10px; border-top:1px solid #1f2937; padding-top:8px;">
-          <strong>Mode legend</strong><br>
-          <span class="pill ok">3F ACTIVE</span> – keyboard + mouse + face<br>
-          <span class="pill warn" style="margin-top:4px;display:inline-block;">BEHAVIOUR-ONLY</span> – keyboard + mouse only<br>
-          <span class="pill" style="margin-top:4px;display:inline-block;">FACE OPTIONAL</span> – keyboard + mouse running; enroll to add face
+          Keyboard features: <strong>18</strong><br>
+          Mouse features: <strong>23</strong><br>
+          Fusion: <strong>active</strong><br>
+          Update interval: <strong>150 ms</strong>
         </div>
       </div>
     </div>
@@ -370,8 +362,6 @@
     const faceDot = document.getElementById('face_dot');
     const enrollBtn = document.getElementById('enroll_btn');
     const enrollStateEl = document.getElementById('enroll_state');
-    const kbInfoTextEl = document.getElementById('kb_info_text');
-    const mouseInfoTextEl = document.getElementById('mouse_info_text');
     const typebox = document.getElementById('typebox');
 
     function setPillMode(mode) {
@@ -401,8 +391,6 @@
         `Real-time SVM + SVM + Fusion · kb: dim=${kbDim} · classes=${kbClasses} · ` +
         `mouse: n_features=${mouseNF} · fusion: active · timer: 150ms`;
 
-      kbInfoTextEl.textContent = `kb: dim=${kbDim} · classes=${kbClasses}`;
-      mouseInfoTextEl.textContent = `mouse: n_features=${mouseNF} · internal_acc=${mouseAcc}`;
 
       setPillMode('waiting');
     })();

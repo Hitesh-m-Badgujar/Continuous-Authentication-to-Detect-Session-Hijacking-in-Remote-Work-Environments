@@ -1,0 +1,20 @@
+{
+  "best_C": 50.0,
+  "best_gamma": 0.1,
+  "best_cv_mean_accuracy": 0.32563784298059006,
+  "best_cv_mean_macro_f1": 0.2670350500164819,
+  "n_tune_rows": 23358,
+  "n_final_train_rows": 23358,
+  "n_users": 10,
+  "n_tuning_files": 65,
+  "grid_C": [
+    50.0,
+    80.0,
+    100.0
+  ],
+  "grid_gamma": [
+    0.1,
+    0.2,
+    0.3
+  ]
+}
