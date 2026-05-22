@@ -19,8 +19,16 @@ from .trust_logging import append_trust_row
 
 log = logging.getLogger(__name__)
 
-# Rolling history of fused trust per user_id
+# Rolling history of fused trust per session/user id
 _SESSION_TRUST_HISTORY: Dict[str, list[float]] = {}
+
+# Per-session modality memory so short idle periods do not immediately tank trust.
+_SESSION_MODALITY_STATE: Dict[str, Dict[str, Dict[str, Optional[float]]]] = {}
+
+KB_HOLD_MS = 2500
+MOUSE_HOLD_MS = 3000
+FACE_HOLD_MS = 4000
+DECAY_MS = 8000
 
 # ---------------------------------------------------------------------
 # Keyboard scorer – RuntimeScorer singleton (SVM-based)
@@ -220,6 +228,82 @@ def _get_face_engine() -> face_runtime.FaceEngine:
 
 
 # ---------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------
+
+def _to_float_or_none(val: Any) -> Optional[float]:
+    if val is None:
+        return None
+    try:
+        return float(val)
+    except (TypeError, ValueError):
+        return None
+
+
+def _extract_session_id(body: Dict[str, Any]) -> str:
+    sid = body.get("session_id") or body.get("user_id") or "global"
+    return str(sid)
+
+
+def _remember_trust(session_id: str, key: str, trust: Optional[float], t_ms: Optional[int] = None) -> None:
+    if trust is None:
+        return
+
+    try:
+        trust_f = float(trust)
+    except (TypeError, ValueError):
+        return
+
+    trust_f = max(0.0, min(1.0, trust_f))
+    now_ms = int(t_ms if t_ms is not None else time.time() * 1000)
+
+    sess = _SESSION_MODALITY_STATE.setdefault(session_id, {})
+    slot = sess.setdefault(key, {"trust": None, "t_ms": None})
+    slot["trust"] = trust_f
+    slot["t_ms"] = now_ms
+
+
+def _resolve_trust_with_hold(
+    session_id: str,
+    key: str,
+    incoming_trust: Optional[float],
+    now_ms: int,
+    hold_ms: int,
+    decay_ms: int = DECAY_MS,
+) -> Optional[float]:
+    """
+    Keep the last valid trust for a short period when there is no new evidence.
+    After that, decay slowly instead of dropping straight to zero.
+    """
+    sess = _SESSION_MODALITY_STATE.setdefault(session_id, {})
+    slot = sess.setdefault(key, {"trust": None, "t_ms": None})
+
+    incoming = _to_float_or_none(incoming_trust)
+    if incoming is not None:
+        incoming = max(0.0, min(1.0, incoming))
+        slot["trust"] = incoming
+        slot["t_ms"] = now_ms
+        return incoming
+
+    prev = slot.get("trust")
+    prev_t = slot.get("t_ms")
+    if prev is None or prev_t is None:
+        return None
+
+    age = now_ms - int(prev_t)
+    if age <= hold_ms:
+        return float(prev)
+
+    if age >= hold_ms + decay_ms:
+        slot["trust"] = None
+        slot["t_ms"] = None
+        return None
+
+    frac = 1.0 - ((age - hold_ms) / float(decay_ms))
+    return float(prev) * max(0.0, frac)
+
+
+# ---------------------------------------------------------------------
 # Views
 # ---------------------------------------------------------------------
 
@@ -303,6 +387,8 @@ def stream_keystrokes(request: HttpRequest) -> JsonResponse:
             {"ok": False, "error": "bad_json", "detail": str(e)}, status=400
         )
 
+    session_id = _extract_session_id(body)
+
     kb_payload: Dict[str, Any] = {"ok": False, "skipped": True}
     mouse_payload: Dict[str, Any] = {"ok": False, "skipped": True}
 
@@ -313,6 +399,7 @@ def stream_keystrokes(request: HttpRequest) -> JsonResponse:
             scorer = _get_kb_scorer()
             kb_res = _kb_score_any(scorer, kb_feats)
             kb_payload = {"ok": True, **kb_res}
+            _remember_trust(session_id, "kb", kb_payload.get("trust"))
         except Exception as e:
             log.exception("keyboard inference failed")
             kb_payload = {
@@ -336,6 +423,7 @@ def stream_keystrokes(request: HttpRequest) -> JsonResponse:
                 "mouse_trust": mt,
                 "prob": float(mouse_res.get("prob", 0.0)),
             }
+            _remember_trust(session_id, "mouse", mt)
         except Exception as e:
             log.exception("mouse inference failed")
             mouse_payload = {
@@ -354,7 +442,7 @@ def stream_keystrokes(request: HttpRequest) -> JsonResponse:
             status=400,
         )
 
-    return JsonResponse({"ok": True, "keyboard": kb_payload, "mouse": mouse_payload})
+    return JsonResponse({"ok": True, "session_id": session_id, "keyboard": kb_payload, "mouse": mouse_payload})
 
 
 @csrf_exempt
@@ -372,6 +460,8 @@ def stream_mouse(request: HttpRequest) -> JsonResponse:
             {"ok": False, "error": "bad_json", "detail": str(e)}, status=400
         )
 
+    session_id = _extract_session_id(body)
+
     feats = body.get("features") or body.get("mouse_features") or body.get("mouse")
     if feats is None:
         return JsonResponse(
@@ -386,9 +476,11 @@ def stream_mouse(request: HttpRequest) -> JsonResponse:
     try:
         res = _mouse_score_any(feats)
         mt = float(res.get("trust", 0.0))
+        _remember_trust(session_id, "mouse", mt)
         return JsonResponse(
             {
                 "ok": True,
+                "session_id": session_id,
                 "mouse_trust": mt,
                 "prob": float(res.get("prob", 0.0)),
             }
@@ -399,15 +491,6 @@ def stream_mouse(request: HttpRequest) -> JsonResponse:
             {"ok": False, "error": "mouse_inference_failed", "detail": str(e)},
             status=500,
         )
-
-
-def _to_float_or_none(val: Any) -> Optional[float]:
-    if val is None:
-        return None
-    try:
-        return float(val)
-    except (TypeError, ValueError):
-        return None
 
 
 @csrf_exempt
@@ -429,16 +512,37 @@ def fuse_scores(request: HttpRequest) -> JsonResponse:
             {"ok": False, "error": "bad_json", "detail": str(e)}, status=400
         )
 
-    # In this demo we use a single global session/user.
-    user_id = "global"
+    user_id = _extract_session_id(body)
+    now_ms = int(time.time() * 1000)
 
-    kb_trust = _to_float_or_none(body.get("kb_trust"))
-    mouse_trust = _to_float_or_none(body.get("mouse_trust"))
+    kb_trust = _resolve_trust_with_hold(
+        user_id,
+        "kb",
+        body.get("kb_trust"),
+        now_ms,
+        KB_HOLD_MS,
+    )
+
+    mouse_trust = _resolve_trust_with_hold(
+        user_id,
+        "mouse",
+        body.get("mouse_trust"),
+        now_ms,
+        MOUSE_HOLD_MS,
+    )
+
     face_match = _to_float_or_none(body.get("face_match"))
     liveness = _to_float_or_none(body.get("liveness"))
+    incoming_face_trust = trust_fusion.fuse_face(face_match, liveness)
+    face_trust = _resolve_trust_with_hold(
+        user_id,
+        "face",
+        incoming_face_trust,
+        now_ms,
+        FACE_HOLD_MS,
+    )
 
     behaviour_trust = trust_fusion.fuse_behaviour(kb_trust, mouse_trust)
-    face_trust = trust_fusion.fuse_face(face_match, liveness)
     overall_trust = trust_fusion.fuse_overall(behaviour_trust, face_trust)
 
     if overall_trust is not None:
@@ -458,7 +562,7 @@ def fuse_scores(request: HttpRequest) -> JsonResponse:
 
         append_trust_row(
             session_id=str(user_id),
-            t_ms=int(time.time() * 1000),
+            t_ms=now_ms,
             label=-1,  # unknown in live runs; you can relabel later if needed
             kb_trust=float(kb_trust) if kb_trust is not None else 0.0,
             mouse_trust=float(mouse_trust) if mouse_trust is not None else 0.0,
@@ -543,6 +647,8 @@ def face_score(request: HttpRequest) -> JsonResponse:
             {"ok": False, "error": "bad_json", "detail": str(e)}, status=400
         )
 
+    session_id = _extract_session_id(body)
+
     img_b64 = (
         body.get("image")
         or body.get("image_b64")
@@ -552,4 +658,12 @@ def face_score(request: HttpRequest) -> JsonResponse:
 
     engine = _get_face_engine()
     res = engine.score_from_b64(img_b64)
+
+    fm = _to_float_or_none(res.get("face_match", res.get("match")))
+    lv = _to_float_or_none(res.get("liveness"))
+    face_trust_val = trust_fusion.fuse_face(fm, lv)
+    _remember_trust(session_id, "face", face_trust_val)
+
+    if isinstance(res, dict):
+        res = {**res, "session_id": session_id}
     return JsonResponse(res)

@@ -1,22 +1,37 @@
 # Apps/behavior/train_kb_cae_cmu.py
 """
-Train a stronger keyboard CAE on CMU-derived windows (kb_cmu_windows.csv).
+Train per-user keyboard CAE baseline models using explicit train/validation splits.
+
+This file is kept only for the keyboard CAE baseline path, not for the final
+runtime keyboard model. The final runtime keyboard path is SVM-based.
+
+Inputs:
+  Data/keyboard_train_windows.csv
+  Data/keyboard_val_windows.csv
 
 Outputs:
-  Models/cae_kb/scaler.joblib
-  Models/cae_kb/cae.keras
+  Models/kb_cae/<user_id>/scaler.joblib
+  Models/kb_cae/<user_id>/cae.keras
+  Models/kb_cae/<user_id>/meta.json
+  artifacts/keyboard/kb_cae_train_summary.csv
+  artifacts/keyboard/kb_cae_train_summary.json
 """
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import List
 
 import numpy as np
 import pandas as pd
 from joblib import dump
-from tensorflow import keras
 from sklearn.preprocessing import StandardScaler
+from tensorflow import keras
+try:
+    from tensorflow.keras.optimizers.legacy import Adam as LegacyAdam
+except Exception:
+    LegacyAdam = keras.optimizers.Adam
 
 # ---------------------------------------------------------------------
 # Paths / config
@@ -24,20 +39,18 @@ from sklearn.preprocessing import StandardScaler
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = BASE_DIR / "Data"
-MODELS_DIR = BASE_DIR / "Models" / "cae_kb"
+MODELS_DIR = BASE_DIR / "Models" / "kb_cae"
+ART_DIR = BASE_DIR / "artifacts" / "keyboard"
 
-DATA_CSV = DATA_DIR / "kb_cmu_windows.csv"
+TRAIN_CSV = DATA_DIR / "keyboard_train_windows.csv"
+VAL_CSV = DATA_DIR / "keyboard_val_windows.csv"
 
-# Users with fewer windows than this are dropped
-MIN_PER_USER = 40
-
-# Training hyperparameters
-EPOCHS = 120           # upper bound, EarlyStopping will usually stop earlier
-BATCH_SIZE = 512
-VAL_SPLIT = 0.1
+LABEL_COL = "user_id"
+MIN_TRAIN_GENUINE = 50
+EPOCHS = 40
+BATCH_SIZE = 256
 LEARNING_RATE = 1e-3
 DROPOUT_RATE = 0.2
-
 
 FEATURES: List[str] = [
     "dwell_mean",
@@ -65,50 +78,37 @@ FEATURES: List[str] = [
 # Helpers
 # ---------------------------------------------------------------------
 
-def load_cmu_windows() -> pd.DataFrame:
-    """Load kb_cmu_windows.csv and filter users with enough data."""
-    if not DATA_CSV.is_file():
-        raise FileNotFoundError(f"Keyboard CMU windows CSV not found at: {DATA_CSV}")
+def _load_split(path: Path) -> pd.DataFrame:
+    if not path.is_file():
+        raise FileNotFoundError(f"Missing keyboard CAE split: {path}")
 
-    df = pd.read_csv(DATA_CSV)
-    if "user_id" not in df.columns:
-        raise ValueError(f"{DATA_CSV} must contain 'user_id' column")
-
-    missing = [c for c in FEATURES if c not in df.columns]
+    df = pd.read_csv(path)
+    needed = [LABEL_COL] + FEATURES
+    missing = [c for c in needed if c not in df.columns]
     if missing:
-        raise ValueError(f"{DATA_CSV} is missing feature columns: {missing}")
+        raise ValueError(f"{path.name} missing columns: {missing}")
 
-    df["user_id"] = df["user_id"].astype(str).str.strip()
-
-    vc = df["user_id"].value_counts()
-    keep = vc[vc >= MIN_PER_USER].index
-    df = df[df["user_id"].isin(keep)].copy()
-
-    if df.empty:
-        raise RuntimeError("No users with enough windows after MIN_PER_USER filtering")
-
-    print(
-        f"[INFO] Loaded {len(df)} windows for {df['user_id'].nunique()} users "
-        f"from {DATA_CSV}"
-    )
+    df = df[needed].copy()
+    df = df.replace([np.inf, -np.inf], np.nan).dropna()
+    df[LABEL_COL] = df[LABEL_COL].astype(str).str.strip()
     return df
 
 
-def build_strong_cae(input_dim: int) -> keras.Model:
-    """
-    Stronger fully-connected CAE:
+def _filter_common_users(train_df: pd.DataFrame, val_df: pd.DataFrame):
+    train_counts = train_df[LABEL_COL].value_counts()
+    val_counts = val_df[LABEL_COL].value_counts()
 
-        input (18)
-          -> Dense(64) + BN + ReLU + Dropout
-          -> Dense(32) + BN + ReLU
-          -> Dense(16) bottleneck
-          -> Dense(32) + BN + ReLU
-          -> Dense(64) + BN + ReLU + Dropout
-          -> Dense(18) reconstruction
+    keep = set(train_counts[train_counts >= MIN_TRAIN_GENUINE].index)
+    keep &= set(val_counts[val_counts >= 1].index)
 
-    Optimiser: Adam with small LR
-    Loss: MSE
-    """
+    train_df = train_df[train_df[LABEL_COL].isin(keep)].copy()
+    val_df = val_df[val_df[LABEL_COL].isin(keep)].copy()
+    if train_df.empty:
+        raise RuntimeError("No keyboard CAE users remain after filtering")
+    return train_df, val_df
+
+
+def build_cae(input_dim: int) -> keras.Model:
     inp = keras.Input(shape=(input_dim,), name="kb_features")
 
     x = keras.layers.Dense(64, kernel_regularizer=keras.regularizers.l2(1e-4))(inp)
@@ -138,12 +138,8 @@ def build_strong_cae(input_dim: int) -> keras.Model:
 
     out = keras.layers.Dense(input_dim, activation=None, name="recon")(x)
 
-    model = keras.Model(inputs=inp, outputs=out, name="kb_cae_strong")
-
-    opt = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
-    model.compile(optimizer=opt, loss="mse")
-
-    model.summary()
+    model = keras.Model(inputs=inp, outputs=out, name="kb_cae_baseline")
+    model.compile(optimizer=LegacyAdam(learning_rate=LEARNING_RATE), loss="mse")
     return model
 
 
@@ -153,58 +149,96 @@ def build_strong_cae(input_dim: int) -> keras.Model:
 
 def main() -> None:
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    ART_DIR.mkdir(parents=True, exist_ok=True)
 
-    df = load_cmu_windows()
-    X = df[FEATURES].to_numpy(dtype=np.float32)
+    train_df = _load_split(TRAIN_CSV)
+    val_df = _load_split(VAL_CSV)
+    train_df, val_df = _filter_common_users(train_df, val_df)
 
-    # Standardise features
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    users = sorted(train_df[LABEL_COL].unique())
+    print(f"[INFO] Keyboard CAE users retained: {len(users)}")
 
-    input_dim = X_scaled.shape[1]
-    print(
-        f"[INFO] Training STRONG CAE with input_dim={input_dim}, "
-        f"samples={X_scaled.shape[0]}"
-    )
+    summary_rows = []
 
-    model = build_strong_cae(input_dim)
+    for user in users:
+        user_train = train_df[train_df[LABEL_COL] == user][FEATURES].to_numpy(dtype=np.float32)
+        user_val = val_df[val_df[LABEL_COL] == user][FEATURES].to_numpy(dtype=np.float32)
 
-    # Callbacks: EarlyStopping + LR reduction
-    early_stop = keras.callbacks.EarlyStopping(
-        monitor="val_loss",
-        patience=10,
-        restore_best_weights=True,
-        verbose=1,
-    )
-    reduce_lr = keras.callbacks.ReduceLROnPlateau(
-        monitor="val_loss",
-        factor=0.5,
-        patience=5,
-        min_lr=1e-5,
-        verbose=1,
-    )
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(user_train)
+        X_val = scaler.transform(user_val)
 
-    history = model.fit(
-        X_scaled,
-        X_scaled,
-        epochs=EPOCHS,
-        batch_size=BATCH_SIZE,
-        validation_split=VAL_SPLIT,
-        shuffle=True,
-        verbose=1,
-        callbacks=[early_stop, reduce_lr],
-    )
+        model = build_cae(X_train.shape[1])
+        early_stop = keras.callbacks.EarlyStopping(
+            monitor="val_loss",
+            patience=5,
+            restore_best_weights=True,
+            verbose=0,
+        )
+        reduce_lr = keras.callbacks.ReduceLROnPlateau(
+            monitor="val_loss",
+            factor=0.5,
+            patience=3,
+            min_lr=1e-5,
+            verbose=0,
+        )
 
-    # Save scaler + model
-    scaler_path = MODELS_DIR / "scaler.joblib"
-    model_path = MODELS_DIR / "cae.keras"
+        history = model.fit(
+            X_train,
+            X_train,
+            validation_data=(X_val, X_val),
+            epochs=EPOCHS,
+            batch_size=BATCH_SIZE,
+            shuffle=True,
+            verbose=0,
+            callbacks=[early_stop, reduce_lr],
+        )
 
-    dump(scaler, scaler_path)
-    model.save(model_path)
+        user_dir = MODELS_DIR / user
+        user_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"[INFO] Saved scaler -> {scaler_path}")
-    print(f"[INFO] Saved CAE model -> {model_path}")
-    print("[INFO] Training complete.")
+        scaler_path = user_dir / "scaler.joblib"
+        model_path = user_dir / "cae.keras"
+        meta_path = user_dir / "meta.json"
+
+        dump(scaler, scaler_path)
+        model.save(model_path)
+
+        best_val_loss = float(np.min(history.history["val_loss"])) if history.history.get("val_loss") else None
+        epochs_run = int(len(history.history.get("loss", [])))
+
+        meta = {
+            "user_id": user,
+            "features": FEATURES,
+            "input_dim": int(X_train.shape[1]),
+            "n_train": int(len(X_train)),
+            "n_val": int(len(X_val)),
+            "epochs_run": epochs_run,
+            "best_val_loss": best_val_loss,
+            "train_csv": str(TRAIN_CSV),
+            "val_csv": str(VAL_CSV),
+            "model_type": "per_user_cae_baseline",
+        }
+        with open(meta_path, "w", encoding="utf-8") as fh:
+            json.dump(meta, fh, indent=2)
+
+        summary_rows.append(meta)
+        print(
+            f"[INFO] Trained CAE for {user}: n_train={len(X_train)}, n_val={len(X_val)}, "
+            f"epochs={epochs_run}, best_val_loss={best_val_loss:.6f}"
+        )
+
+    summary_df = pd.DataFrame(summary_rows)
+    summary_csv = ART_DIR / "kb_cae_train_summary.csv"
+    summary_json = ART_DIR / "kb_cae_train_summary.json"
+
+    summary_df.to_csv(summary_csv, index=False)
+    with open(summary_json, "w", encoding="utf-8") as fh:
+        json.dump(summary_rows, fh, indent=2)
+
+    print(f"[INFO] Saved keyboard CAE summary -> {summary_csv}")
+    print(f"[INFO] Saved keyboard CAE summary -> {summary_json}")
+    print("[INFO] Keyboard CAE baseline training complete.")
 
 
 if __name__ == "__main__":

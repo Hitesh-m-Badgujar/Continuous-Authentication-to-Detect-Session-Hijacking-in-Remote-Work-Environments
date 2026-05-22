@@ -1,4 +1,31 @@
 {
-  "tau": 0.053823888598819404,
-  "user_id": "s029"
+  "user_id": "s029",
+  "features": [
+    "dwell_mean",
+    "dwell_std",
+    "dwell_p10",
+    "dwell_p50",
+    "dwell_p90",
+    "dd_mean",
+    "dd_std",
+    "dd_p10",
+    "dd_p50",
+    "dd_p90",
+    "ud_mean",
+    "ud_std",
+    "ud_p10",
+    "ud_p50",
+    "ud_p90",
+    "backspace_rate",
+    "burst_mean",
+    "idle_frac"
+  ],
+  "input_dim": 18,
+  "n_train": 240,
+  "n_val": 80,
+  "epochs_run": 40,
+  "best_val_loss": 0.5467310547828674,
+  "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
+  "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
+  "model_type": "per_user_cae_baseline"
 }

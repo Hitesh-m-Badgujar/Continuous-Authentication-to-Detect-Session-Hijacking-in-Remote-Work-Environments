@@ -1,5 +1,3 @@
-# Apps/behavior/trust_fusion.py
-
 from __future__ import annotations
 
 from typing import Optional
@@ -64,8 +62,9 @@ def fuse_face(
         return None
 
     if fm is not None and lv is not None:
-        # Face match more important than liveness
-        return 0.7 * fm + 0.3 * lv
+        # Face match is primary. Liveness is support only.
+        # This avoids large trust drops when the user stops moving for a moment.
+        return _clamp01(0.9 * fm + 0.1 * lv)
 
     return fm if fm is not None else lv
 
@@ -84,8 +83,10 @@ def fuse_overall(
         return None
 
     if bt is not None and ft is not None:
-        # 60% behaviour (kb+mouse), 40% face
-        return 0.6 * bt + 0.4 * ft
+        # Behaviour is primary. Face can support and push trust up,
+        # but should not drag behaviour trust down when face motion is low.
+        raw = 0.6 * bt + 0.4 * ft
+        return max(bt, raw)
 
     return bt if bt is not None else ft
 
@@ -101,9 +102,9 @@ def trust_policy_action(trust: Optional[float]) -> str:
     if t is None:
         return LOCK
 
-    # thresholds slightly relaxed so you get more ALLOW when behaviour+face agree
-    if t < 0.35:
+    # Slightly more forgiving thresholds for the live prototype.
+    if t < 0.30:
         return LOCK
-    if t < 0.60:
+    if t < 0.55:
         return STEP_UP
     return ALLOW
