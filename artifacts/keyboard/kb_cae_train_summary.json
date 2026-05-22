@@ -25,7 +25,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5749737620353699,
+    "best_val_loss": 0.6505184173583984,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -56,7 +56,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5445996522903442,
+    "best_val_loss": 0.5481945276260376,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -87,7 +87,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5521694421768188,
+    "best_val_loss": 0.5262460112571716,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -118,7 +118,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5354092717170715,
+    "best_val_loss": 0.5284319519996643,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -149,7 +149,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5581111907958984,
+    "best_val_loss": 0.5688952803611755,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -180,7 +180,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.8444546461105347,
+    "best_val_loss": 0.8568335771560669,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -211,7 +211,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7157685160636902,
+    "best_val_loss": 0.6759536266326904,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -242,7 +242,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7228119969367981,
+    "best_val_loss": 0.7786421775817871,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -273,7 +273,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7059686779975891,
+    "best_val_loss": 0.6095668077468872,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -304,7 +304,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6562600135803223,
+    "best_val_loss": 0.7522043585777283,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -335,7 +335,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7370008826255798,
+    "best_val_loss": 0.6853886246681213,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -366,7 +366,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7085532546043396,
+    "best_val_loss": 0.7014102339744568,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -397,7 +397,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6848385334014893,
+    "best_val_loss": 0.7708002328872681,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -428,7 +428,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5979246497154236,
+    "best_val_loss": 0.556187093257904,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -459,7 +459,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7770646214485168,
+    "best_val_loss": 0.7149305939674377,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -490,7 +490,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7983099222183228,
+    "best_val_loss": 0.7542490363121033,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -521,7 +521,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.616634726524353,
+    "best_val_loss": 0.6292258501052856,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -552,7 +552,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6094051003456116,
+    "best_val_loss": 0.6327449083328247,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -583,7 +583,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7579708695411682,
+    "best_val_loss": 0.7749949097633362,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -614,7 +614,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6701928377151489,
+    "best_val_loss": 0.6671475172042847,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -645,7 +645,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7533782720565796,
+    "best_val_loss": 0.7410260438919067,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -676,7 +676,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6801950335502625,
+    "best_val_loss": 0.7237581014633179,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -707,7 +707,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7603887915611267,
+    "best_val_loss": 0.7139283418655396,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -738,7 +738,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5467310547828674,
+    "best_val_loss": 0.5903427600860596,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -769,7 +769,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5494591593742371,
+    "best_val_loss": 0.5628656148910522,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -800,7 +800,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5813173055648804,
+    "best_val_loss": 0.6209894418716431,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -831,7 +831,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.8710099458694458,
+    "best_val_loss": 0.851873517036438,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -862,7 +862,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6923996806144714,
+    "best_val_loss": 0.7138014435768127,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -893,7 +893,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6882308721542358,
+    "best_val_loss": 0.6297774314880371,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -924,7 +924,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6913242936134338,
+    "best_val_loss": 0.627886176109314,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -955,7 +955,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5531289577484131,
+    "best_val_loss": 0.5527233481407166,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -986,7 +986,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.606001615524292,
+    "best_val_loss": 0.5746796727180481,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1017,7 +1017,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6610645055770874,
+    "best_val_loss": 0.6822348833084106,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1048,7 +1048,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.771722674369812,
+    "best_val_loss": 0.7484610676765442,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1079,7 +1079,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.644878089427948,
+    "best_val_loss": 0.7033166289329529,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1110,7 +1110,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.738778829574585,
+    "best_val_loss": 0.7593646049499512,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1141,7 +1141,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6633533835411072,
+    "best_val_loss": 0.7916983366012573,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1172,7 +1172,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 2.030590534210205,
+    "best_val_loss": 2.1352319717407227,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1203,7 +1203,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5032157301902771,
+    "best_val_loss": 0.5510939359664917,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1234,7 +1234,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.8230305910110474,
+    "best_val_loss": 0.873892605304718,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1265,7 +1265,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5110169649124146,
+    "best_val_loss": 0.5523083806037903,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1296,7 +1296,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6002753376960754,
+    "best_val_loss": 0.6082750558853149,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1327,7 +1327,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.5697809457778931,
+    "best_val_loss": 0.517646312713623,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1358,7 +1358,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.602592408657074,
+    "best_val_loss": 0.6535443067550659,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1389,7 +1389,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.794154942035675,
+    "best_val_loss": 0.6957374811172485,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1420,7 +1420,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6506437063217163,
+    "best_val_loss": 0.6910489201545715,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1451,7 +1451,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7092961072921753,
+    "best_val_loss": 0.6864666938781738,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1482,7 +1482,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6965711116790771,
+    "best_val_loss": 0.6084661483764648,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1513,7 +1513,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.6023149490356445,
+    "best_val_loss": 0.5703234076499939,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1544,7 +1544,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.590180516242981,
+    "best_val_loss": 0.5364490151405334,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"
@@ -1575,7 +1575,7 @@
     "n_train": 240,
     "n_val": 80,
     "epochs_run": 40,
-    "best_val_loss": 0.7175066471099854,
+    "best_val_loss": 0.7547970414161682,
     "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
     "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
     "model_type": "per_user_cae_baseline"

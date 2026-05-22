@@ -24,7 +24,7 @@
   "n_train": 240,
   "n_val": 80,
   "epochs_run": 40,
-  "best_val_loss": 0.5110169649124146,
+  "best_val_loss": 0.5523083806037903,
   "train_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_train_windows.csv",
   "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
   "model_type": "per_user_cae_baseline"

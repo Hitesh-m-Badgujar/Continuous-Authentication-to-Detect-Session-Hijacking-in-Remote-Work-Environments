@@ -1,5 +1,11 @@
 {
-  "MACRO_FAR": 0.6592156862745099,
-  "MACRO_FRR": 0.20941176470588233,
-  "MACRO_ACC": 0.5656862745098039
+  "MACRO_FAR": 0.15269607843137256,
+  "MACRO_FRR": 0.17573529411764707,
+  "MACRO_ACC": 0.8357843137254902,
+  "MACRO_ERR": 0.16421568627450978,
+  "n_users": 51,
+  "val_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_val_windows.csv",
+  "test_csv": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Data/keyboard_test_windows.csv",
+  "model_root": "/Users/hitesh/Desktop/Continuous-Authentication-to-Detect-Session-Hijacking-in-Remote-Work-Environments/Models/kb_cae",
+  "model_type": "per_user_cae_baseline"
 }
