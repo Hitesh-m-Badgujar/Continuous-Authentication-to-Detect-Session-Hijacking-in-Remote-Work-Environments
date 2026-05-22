@@ -1,0 +1,10 @@
+metric,value
+live_policy_accuracy,0.7558488302339532
+genuine_allow_rate,0.9549878345498783
+genuine_false_alarm_rate,0.045012165450121655
+takeover_detection_rate_STEP_UP_or_LOCK,0.5621301775147929
+takeover_lock_rate,0.0757396449704142
+takeover_stepup_rate,0.4863905325443787
+n_genuine_rows,822.0
+n_takeover_rows,845.0
+n_total_rows,1667.0
