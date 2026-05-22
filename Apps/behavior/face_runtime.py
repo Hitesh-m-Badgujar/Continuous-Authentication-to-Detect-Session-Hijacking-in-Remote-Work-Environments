@@ -85,6 +85,7 @@ class FaceEngine:
     last_frame_gray: Optional[np.ndarray] = None
     last_face_roi_gray: Optional[np.ndarray] = None
     bbox_history: List[Tuple[int, int, int, int]] = field(default_factory=list)
+    last_liveness: Optional[float] = None
 
     def __post_init__(self) -> None:
         self._load_template()
@@ -183,13 +184,15 @@ class FaceEngine:
         """
         h, w = frame_gray.shape[:2]  # noqa: F841  (kept for clarity)
 
-        # First frame: no temporal info yet
+        # First frame: no temporal info yet.
+        # Use a moderate default instead of a very low one so face trust does
+        # not collapse immediately when the face is clearly present but still.
         if self.last_frame_gray is None or self.last_face_roi_gray is None or not self.bbox_history:
             self.last_frame_gray = frame_gray.copy()
             self.last_face_roi_gray = roi_gray.copy()
             self.bbox_history = [bbox]
-            # Low-ish default: neither clearly fake nor clearly live
-            return 0.3
+            self.last_liveness = 0.45
+            return 0.45
 
         # --- Face ROI motion (local) ---
         cur_roi_small = cv2.resize(roi_gray, (64, 64), interpolation=cv2.INTER_AREA)
@@ -233,12 +236,19 @@ class FaceEngine:
         liveness_raw = w_rel * rel_motion + w_roi * roi_diff + w_bbox * bbox_motion
         liveness = float(np.clip(liveness_raw, 0.0, 1.0))
 
+        # Smooth liveness over time so short pauses in motion do not cause
+        # sharp trust drops in the live monitor.
+        if self.last_liveness is not None:
+            liveness = 0.7 * float(self.last_liveness) + 0.3 * liveness
+        liveness = float(np.clip(liveness, 0.0, 1.0))
+
         # Update temporal memory
         self.last_frame_gray = frame_gray.copy()
         self.last_face_roi_gray = roi_gray.copy()
         self.bbox_history.append(bbox)
         if len(self.bbox_history) > 10:
             self.bbox_history.pop(0)
+        self.last_liveness = liveness
 
         return liveness
 
@@ -267,6 +277,7 @@ class FaceEngine:
         self.last_frame_gray = gray.copy()
         self.last_face_roi_gray = roi.copy()
         self.bbox_history = [bbox]
+        self.last_liveness = None
 
         return {"ok": True, "enrolled": True}
 
@@ -286,6 +297,12 @@ class FaceEngine:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         bbox = self._detect_face(gray)
         if bbox is None:
+            # Reset temporal memory on face loss so the next detected face starts
+            # cleanly instead of comparing against a stale ROI.
+            self.last_frame_gray = gray.copy()
+            self.last_face_roi_gray = None
+            self.bbox_history = []
+            self.last_liveness = None
             return {"ok": False, "error": "no_face", "face_match": None, "liveness": None}
 
         roi = self._extract_face_roi(gray, bbox)
@@ -298,10 +315,18 @@ class FaceEngine:
         # Improved liveness heuristic
         live = self._compute_liveness(gray, bbox, roi)
 
+        # Apply a small liveness floor when the face match is strong and a face
+        # is clearly present. This makes the live prototype less dependent on
+        # constant blinking or head motion.
+        if sim01 >= 0.85:
+            live = max(live, 0.35)
+        elif sim01 >= 0.75:
+            live = max(live, 0.25)
+
         return {
             "ok": True,
             "face_match": sim01,
-            "liveness": live,
+            "liveness": float(np.clip(live, 0.0, 1.0)),
         }
 
     def health(self) -> Dict[str, Any]:

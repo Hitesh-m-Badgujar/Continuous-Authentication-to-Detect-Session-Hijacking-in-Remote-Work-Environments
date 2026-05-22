@@ -321,12 +321,18 @@
     const MOUSE_HEALTH = {{ mouse_health|safe }};
 
     // -------- State flags --------
+    const SESSION_ID = (
+      window.crypto && window.crypto.randomUUID
+        ? window.crypto.randomUUID()
+        : 'session_' + Date.now()
+    );
+
     let faceReady = false;     // engine allowed to run?
     let behaviourOnly = false; // webcam unavailable → behaviour-only
     let faceEnrolled = false;  // true after successful enroll
     let faceMatch = null;      // current face_match
     let liveScore = null;      // current liveness
-    let lastMouseTrust = 0.0;  // keep last mouse trust when stationary
+    let lastMouseTrust = 0.0;  // display only; backend now owns hold/decay logic
 
     // Prevent overlapping async ticks (avoids out-of-order UI updates)
     let tickRunning = false;
@@ -722,7 +728,7 @@ typebox.addEventListener('keyup', e => {
       enrollBtn.disabled = true;
       enrollStateEl.textContent = 'Enrolling…';
       try {
-        const res = await postJSON('/behavior/face_enroll', { image: b64 });
+        const res = await postJSON('/behavior/face_enroll', { session_id: SESSION_ID, image: b64 });
         if (res.ok) {
           faceEnrolled = true;
           faceReady = true;
@@ -762,7 +768,7 @@ typebox.addEventListener('keyup', e => {
           faceDot.className = 'status-dot warn';
           return;
         }
-        const res = await postJSON('/behavior/face_score', { image: b64 });
+        const res = await postJSON('/behavior/face_score', { session_id: SESSION_ID, image: b64 });
 
         // If backend says "no face" or any error → clear scores
         if (!res || !res.ok || res.error === 'no_face') {
@@ -826,7 +832,7 @@ typebox.addEventListener('keyup', e => {
         statusDot.className = 'status-dot ok';
         statusText.textContent = 'Streaming…';
 
-        const payload = {};
+        const payload = { session_id: SESSION_ID };
         if (kb_features) payload.kb_features = kb_features;
         if (mouse_features) payload.mouse_features = mouse_features;
 
@@ -834,8 +840,8 @@ typebox.addEventListener('keyup', e => {
 
         // Keyboard
         const kb = data.keyboard || {};
-        let kbTrust = 0.0;
-        if (kb.ok) {
+        let kbTrust = null;
+        if (kb.ok && typeof kb.trust === 'number') {
           kbTrust = clamp01(kb.trust);
           kbTrustEl.textContent = kbTrust.toFixed(5);
           kbBar.style.width = (kbTrust * 100).toFixed(1) + '%';
@@ -843,16 +849,18 @@ typebox.addEventListener('keyup', e => {
           kbProbEl.textContent =
             (typeof kb.prob === 'number' ? clamp01(kb.prob).toFixed(3) : '0.000');
           kbStatusEl.textContent = 'ok';
-        } else {
+        } else if (kb_features) {
           kbStatusEl.textContent = kb.error ? ('error: ' + kb.error) : 'error';
           kbBar.style.width = '0%';
+        } else {
+          kbStatusEl.textContent = 'idle';
         }
 
         // Mouse
         const ms = data.mouse || {};
         let mouseTrust = null;
-        if (ms.ok) {
-          mouseTrust = (typeof ms.mouse_trust === 'number') ? ms.mouse_trust : 0.0;
+        if (ms.ok && typeof ms.mouse_trust === 'number') {
+          mouseTrust = ms.mouse_trust;
           lastMouseTrust = mouseTrust;
           mouseTrustEl.textContent = mouseTrust.toFixed(5);
           mouseBar.style.width = (mouseTrust * 100).toFixed(1) + '%';
@@ -863,29 +871,23 @@ typebox.addEventListener('keyup', e => {
           mouseStatusEl.textContent = ms.error ? ('error: ' + ms.error) : 'error';
           mouseBar.style.width = '0%';
         } else {
-          // No mouse activity in the current window.
-          // Decay the displayed trust so the UI reflects inactivity (instead of looking stuck).
+          // No new mouse evidence in this tick. Keep the last displayed value,
+          // but do not send a decayed frontend trust to fusion.
           mouseStatusEl.textContent = 'idle';
-          lastMouseTrust = Math.max(0, lastMouseTrust * 0.96);
-          mouseTrustEl.textContent = lastMouseTrust.toFixed(5);
-          mouseBar.style.width = (lastMouseTrust * 100).toFixed(1) + '%';
           mouseProbEl.textContent = '0.000';
         }
 
-        // Decide what to send to fusion:
-        let mouseTrustForFusion = null;
-        if (mouseTrust != null) {
-          mouseTrustForFusion = mouseTrust;
-        } else if (lastMouseTrust > 0) {
-          mouseTrustForFusion = lastMouseTrust;
+        const fusePayload = { session_id: SESSION_ID };
+
+        if (kb.ok && typeof kbTrust === 'number') {
+          fusePayload.kb_trust = kbTrust;
         }
 
-        const fusePayload = { kb_trust: kbTrust };
-        if (mouseTrustForFusion != null) {
-          fusePayload.mouse_trust = mouseTrustForFusion;
+        if (ms.ok && typeof mouseTrust === 'number') {
+          fusePayload.mouse_trust = mouseTrust;
         }
 
-        // Only include face if we have a current valid score
+        // Only include fresh face evidence when we have a current valid score.
         if (!behaviourOnly && faceEnrolled && faceMatch != null && liveScore != null) {
           fusePayload.face_match = faceMatch;
           fusePayload.liveness = liveScore;

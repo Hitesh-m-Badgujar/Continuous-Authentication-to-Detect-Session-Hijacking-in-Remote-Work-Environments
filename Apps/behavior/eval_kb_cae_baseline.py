@@ -190,7 +190,7 @@ def main() -> None:
         model.save(user_dir / "cae.keras")
         dump(scaler, user_dir / "scaler.joblib")
         with open(user_dir / "meta.json", "w", encoding="utf-8") as f:
-            json.dump({"tau": tau, "user_id": user}, f, indent=2)
+            json.dump({"t₹au": tau, "user_id": user}, f, indent=2)
 
         rows.append(
             {

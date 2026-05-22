@@ -96,11 +96,10 @@ def _clip01(x: float) -> float:
 
 def _policy(trust: float) -> str:
     """
-    Simple keyboard-only policy:
+    Simple keyboard-only policy used only for the keyboard card display.
 
-      trust >= 0.75 -> ALLOW
-      0.40–0.75     -> STEP_UP
-      < 0.40        -> LOCK
+    The final live session decision is not taken here. It is taken later by
+    the fused behaviour/face policy in trust_fusion.py.
     """
     if trust >= 0.75:
         return "ALLOW"
@@ -153,8 +152,9 @@ class RuntimeScorer:
 
     NO per-user runtime. We treat SVM output as:
       - get decision scores from decision_function (or predict_proba if exists)
-      - softmax to get pseudo-probabilities per class
-      - trust = max softmax(prob) in [0,1]
+      - use probabilities mainly for display / predicted class output
+      - derive live trust from the top-1 vs top-2 score margin
+        so the runtime signal is more sensitive and less visually "stuck"
     """
 
     model_dir: Path
@@ -299,5 +299,12 @@ def load_runtime(model_dir: Optional[Path | str] = None) -> RuntimeScorer:
 
 
 def residuals(X: np.ndarray, model_dir: Optional[Path | str] = None) -> np.ndarray:
+    """
+    Legacy compatibility helper.
+
+    This module now serves the final keyboard SVM runtime path, not the old
+    CAE residual-based path. Residuals are therefore not meaningful here.
+    The function is kept only so that older imports do not crash.
+    """
     X = np.asarray(X, dtype=np.float32)
     return np.zeros(X.shape[0], dtype=np.float32)
